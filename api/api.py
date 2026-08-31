@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 import os
 from dotenv import load_dotenv
@@ -86,32 +86,26 @@ def get_columns(table_name):
     }
 
 
-@app.route('/skills')
-def get_skills():
-    skills = Skill.query.all()
+@app.route('/users', methods=['POST'])
+def create_user():
+    data = request.get_json()
 
-    return jsonify([
-        {
-            'id': skill.id,
-            'name': skill.name
-        }
-        for skill in skills
-    ])
+    user = User(
+        email=data['email'],
+        phone=data['phone'],
+        address=data['address'],
+        password=data['password']
+    )
 
+    db.session.add(user)
+    db.session.commit()
 
-@app.route('/user-skills')
-def get_user_skills():
-    user_skills = UserSkill.query.all()
-
-    return jsonify([
-        {
-            'user_id': us.user_id,
-            'skill_id': us.skill_id
-        }
-        for us in user_skills
-
-        
-    ])
+    return jsonify({
+        'userid': user.userid,
+        'email': user.email,
+        'phone': user.phone,
+        'address': user.address
+    }), 201
 
 
 @app.route('/db-test')
