@@ -82,7 +82,7 @@ function App() {
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
-        <h1>Users</h1>
+        <h1>Welcome to Job Manager</h1>
       </header>
       <main className="App-main">
         <section className="form-section">
