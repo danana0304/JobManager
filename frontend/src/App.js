@@ -3,12 +3,23 @@ import React, { useState, useEffect } from "react";
 import "./App.css";
 
 function App() {
-  const [currentTime, setCurrentTime] = useState(0);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   useEffect(() => {
-    fetch("/time")
-      .then((res) => res.json())
+    fetch("/users")
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch users");
+        return res.json();
+      })
       .then((data) => {
-        setCurrentTime(data.time);
+        setUsers(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message);
+        setLoading(false);
       });
   }, []);
 
@@ -16,19 +27,36 @@ function App() {
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-        <p>The current time is {currentTime}.</p>
+        <h1>Users</h1>
       </header>
+      <main className="App-main">
+        {loading && <p>Loading users...</p>}
+        {error && <p className="error">Error: {error}</p>}
+        {users.length > 0 ? (
+          <table className="users-table">
+            <thead>
+              <tr>
+                <th>User ID</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Address</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((user) => (
+                <tr key={user.userid}>
+                  <td>{user.userid}</td>
+                  <td>{user.email}</td>
+                  <td>{user.phone}</td>
+                  <td>{user.address}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          !loading && <p>No users found.</p>
+        )}
+      </main>
     </div>
   );
 }
