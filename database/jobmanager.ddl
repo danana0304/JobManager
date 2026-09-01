@@ -1,7 +1,9 @@
-CREATE TYPE  IF NOT EXISTS application_status AS ENUM ('Applied', 'Interviewing', 'Rejected', 'Accepted');
+CREATE TYPE application_status AS ENUM ('Applied', 'Interviewing', 'Rejected', 'Accepted');
+CREATE TYPE user_type AS ENUM ('Admin', 'User');
 
 CREATE TABLE IF NOT EXISTS Users (
     UserId SERIAL PRIMARY KEY,
+    UserType user_type NOT NULL DEFAULT 'User',
     Email VARCHAR(255) NOT NULL UNIQUE,
     Phone VARCHAR(20),
     Address VARCHAR(255),
