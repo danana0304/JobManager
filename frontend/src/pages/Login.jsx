@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import logo from "../logo.svg";
+import "./Login.css";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -37,13 +39,19 @@ function Login() {
         return;
       }
 
-      // Admin
-      if (data.UserType === "Admin") {
-        navigate("/admin");
-      }
+      const userType = data.usertype ?? data.UserType ?? "User";
+      localStorage.setItem(
+        "jobmanager_user",
+        JSON.stringify({
+          userid: data.userid,
+          email: data.email,
+          usertype: userType,
+        }),
+      );
 
-      // Normal user
-      else {
+      if (userType === "Admin") {
+        navigate("/admin");
+      } else {
         navigate("/user");
       }
     } catch (error) {
@@ -52,32 +60,43 @@ function Login() {
   };
 
   return (
-    <div>
-      <h1>Login</h1>
+    <div className="login-page">
+      <div className="login-card">
+        <img src={logo} alt="Job Manager logo" className="login-logo" />
+        <h1 className="login-title">Login</h1>
 
-      <form onSubmit={handleLogin}>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
+        <form onSubmit={handleLogin} className="login-form">
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="login-input"
+          />
 
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="login-input"
+          />
 
-        <button type="submit">Login</button>
-      </form>
+          <button type="submit" className="login-button">
+            Login
+          </button>
+        </form>
 
-      <button type="button" onClick={() => navigate("/register")}>
-        Register
-      </button>
+        <button
+          type="button"
+          onClick={() => navigate("/register")}
+          className="register-button"
+        >
+          Register
+        </button>
 
-      {error && <p>{error}</p>}
+        {error && <p className="login-error">{error}</p>}
+      </div>
     </div>
   );
 }
