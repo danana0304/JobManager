@@ -25,7 +25,7 @@ CORS(
     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
 )
 
-class usertype(Enum):
+class UserType(Enum):
     Admin = 'Admin'
     User = 'User'
 
@@ -43,12 +43,13 @@ def load_user(userid):
     return db.session.get(User, int(userid)) 
 
 # Login required to access information
-def admin_required(f): 
-    @login_required 
-    def decorated_function(*args, **kwargs): 
-        if current_user.usertype != usertype.Admin:
-            return jsonify({ 'error': 'Admin access required' }), 403 
-        return f(*args, **kwargs) 
+def admin_required(f):
+    @login_required
+    def decorated_function(*args, **kwargs):
+        if current_user.usertype != UserType.Admin:
+            return jsonify({'error': 'Admin access required'}), 403
+        return f(*args, **kwargs)
+
     return decorated_function
 
 # Registration always defaults to the User role
@@ -67,13 +68,13 @@ def register():
         phone=data.get('phone'), 
         address=data.get('address'), 
         password=generate_password_hash(password), 
-        usertype=usertype.User ) 
+        usertype=UserType.User ) 
     db.session.add(user) 
     db.session.commit() 
     return jsonify({ 
         'message': 'Account created successfully', 
         'userid': user.userid,
-        'usertype': user.usertype.value if isinstance(user.usertype, usertype) else user.usertype
+        'usertype': user.usertype.value if isinstance(user.usertype, UserType) else user.usertype
         }), 201
 
 
@@ -92,7 +93,7 @@ def login():
         'message': 'Login successful', 
         'userid': user.userid, 
         'email': user.email, 
-        'usertype': user.usertype.value if isinstance(user.usertype, usertype) else user.usertype
+        'usertype': user.usertype.value if isinstance(user.usertype, UserType) else user.usertype
         }), 200
 
 @app.route('/logout', methods=['POST']) 
@@ -107,7 +108,7 @@ def logout():
 def get_current_user(): 
     if not current_user.is_authenticated: 
         return jsonify({ 'logged_in': False }) 
-    return jsonify({ 'logged_in': True, 'userid': current_user.userid, 'email': current_user.email, 'usertype': current_user.usertype.value if isinstance(current_user.usertype, usertype) else current_user.usertype })
+    return jsonify({ 'logged_in': True, 'userid': current_user.userid, 'email': current_user.email, 'usertype': current_user.usertype.value if isinstance(current_user.usertype, UserType) else current_user.usertype })
 
 @app.route('/user') 
 @login_required 
@@ -120,6 +121,7 @@ def user_dashboard():
 def admin_dashboard(): 
     return jsonify({ 'message': 'Welcome to admin dashboard', 'userid': current_user.userid, 'email': current_user.email })
 
+
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
 
@@ -128,10 +130,11 @@ class User(UserMixin, db.Model):
     phone = db.Column(db.String)
     address = db.Column(db.String)
     password = db.Column(db.String, nullable=False)
+
     usertype = db.Column(
-        db.Enum(usertype, name='usertype', native_enum=False),
+        db.Enum(UserType, name='usertype', native_enum=False),
         nullable=False,
-        default=usertype.User
+        default=UserType.User
     )
 
     def get_id(self):
@@ -177,7 +180,7 @@ def get_users():
             'email': user.email,
             'phone': user.phone,
             'address': user.address,
-            'usertype': user.usertype.value if isinstance(user.usertype, usertype) else user.usertype
+            'usertype': user.usertype.value if isinstance(user.usertype, UserType) else user.usertype
         }
         for user in users
     ])
