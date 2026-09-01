@@ -1,0 +1,31 @@
+-- Get users with specific skill
+SELECT Users.Email
+FROM Users
+JOIN UserSkills us ON Users.UserId = UserSkills.UserId
+JOIN Skills ON UserSkills.SkillId = Skills.SkillId
+WHERE s.Name = [skill we are looking for];
+
+-- Get all applications for user
+SELECT Postings.Company, Postings.Position, Application.Status
+FROM Applications
+JOIN Postings ON Applications.PostingId = Postings.PostingId
+WHERE a.UserId = [user id we are checking for];
+
+-- Get all applicants for a certain posting
+SELECT Users.Email, Users.Phone, Applications.Status
+FROM Applications
+JOIN Users ON Applications.UserId = Users.UserId
+WHERE Applications.PostingId = [posting id we are looking for];
+
+-- Add to table
+INSERT INTO [table] (table values)
+VALUES (new values);
+
+-- Update table
+UPDATE [table]
+SET [column] = [new value]
+WHERE [condition];
+
+-- Delete from table
+DELETE FROM [table]
+WHERE [condition];
