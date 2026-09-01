@@ -125,20 +125,9 @@ class User(UserMixin, db.Model):
 
     userid = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String, nullable=False, unique=True)
-    email = db.Column(db.String, nullable=False, unique=True)
     phone = db.Column(db.String)
     address = db.Column(db.String)
     password = db.Column(db.String, nullable=False)
-    usertype = db.Column(
-        db.Enum(usertype, name='usertype', native_enum=False),
-        nullable=False,
-        default=usertype.User
-    )
-
-    def get_id(self):
-        return str(self.userid)
-    password = db.Column(db.String, nullable=False)
-
     usertype = db.Column(
         db.Enum(usertype, name='usertype', native_enum=False),
         nullable=False,
