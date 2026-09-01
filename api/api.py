@@ -104,6 +104,23 @@ def logout():
         'message': 'Logged out successfully' 
         })
 
+@app.route('/skills', methods=['POST'])
+def create_skill():
+    data = request.get_json()
+    name = data.get('name')
+    if not name:
+        return jsonify({'error': 'Skill name is required'}), 400
+
+    skill = Skill(name=name)
+
+    db.session.add(skill)
+    db.session.commit()
+
+    return jsonify({
+        'skillid': skill.skillid,
+        'name': skill.name
+    }), 201
+
 @app.route('/me') 
 def get_current_user(): 
     if not current_user.is_authenticated: 
@@ -169,7 +186,6 @@ class Application(db.Model):
     userid = db.Column(db.Integer, db.ForeignKey('users.userid', ondelete='CASCADE'), primary_key=True)
     status = db.Column(db.Enum('Applied', 'Interviewing', 'Rejected', 'Accepted', name='application_status'), nullable=False, server_default='Applied')
 
-
 @app.route('/users')
 def get_users():
     users = User.query.all()
@@ -184,6 +200,20 @@ def get_users():
         }
         for user in users
     ])
+
+@app.route('/users/<int:userid>/skills')
+def get_user_skills(userid):
+    user = db.session.get(User, userid)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    return jsonify([
+        {
+            'skillid': skill.skillid,
+            'name': skill.name
+        }
+        for skill in user.skills
+    ]), 200
 
 @app.route('/postings')
 def get_postings():
@@ -240,7 +270,7 @@ def get_applications(userid):
     ])
 
 @app.route('/applications')
-def get_applications(userid):
+def get_applications():
     applications = Application.query.all()
 
     return jsonify([
@@ -252,7 +282,17 @@ def get_applications(userid):
         for app in applications
     ])
 
+@app.route('/skills')
+def get_skills():
+    skills = Skill.query.all()
 
+    return jsonify([
+        {
+            'userid': skill.userid,
+            'name': skill.name
+        }
+        for skill in skills
+    ])
 
 @app.route('/tables')
 def get_tables():
