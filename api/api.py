@@ -21,10 +21,11 @@ class User(db.Model):
     __tablename__ = 'users'
 
     userid = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String)
+    usertype = db.Column(db.Enum('Admin', 'User', name='user_type'), nullable=False, server_default='User')
+    email = db.Column(db.String, nullable=False)
     phone = db.Column(db.String)
     address = db.Column(db.String)
-    password = db.Column(db.String)
+    password = db.Column(db.String, nullable=False)
 
 
 class Skill(db.Model):
@@ -32,6 +33,29 @@ class Skill(db.Model):
 
     skillid = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
+
+
+class UserSkill(db.Model):
+    __tablename__ = 'userskills'
+
+    userid = db.Column(db.Integer, db.ForeignKey('users.userid', ondelete='CASCADE'), primary_key=True)
+    skillid = db.Column(db.Integer, db.ForeignKey('skills.skillid', ondelete='CASCADE'), primary_key=True)
+
+
+class Posting(db.Model):
+    __tablename__ = 'postings'
+
+    postingid = db.Column(db.Integer, primary_key=True)
+    company = db.Column(db.String, nullable=False)
+    position = db.Column(db.String, nullable=False)
+
+
+class Application(db.Model):
+    __tablename__ = 'applications'
+
+    postingid = db.Column(db.Integer, db.ForeignKey('postings.postingid', ondelete='CASCADE'), primary_key=True)
+    userid = db.Column(db.Integer, db.ForeignKey('users.userid', ondelete='CASCADE'), primary_key=True)
+    status = db.Column(db.Enum('Applied', 'Interviewing', 'Rejected', 'Accepted', name='application_status'), nullable=False, server_default='Applied')
 
 
 @app.route('/users')
@@ -108,6 +132,25 @@ def create_user():
         'email': user.email,
         'phone': user.phone,
         'address': user.address
+    }), 201
+
+
+@app.route('/postings', methods=['POST'])
+def create_posting():
+    data = request.get_json()
+
+    posting = Posting(
+        company=data['company'],
+        position=data['position']
+    )
+
+    db.session.add(posting)
+    db.session.commit()
+
+    return jsonify({
+        'postingid': posting.postingid,
+        'company': posting.company,
+        'position': posting.position
     }), 201
 
 
