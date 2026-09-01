@@ -2,10 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-
-function UserDashboard() {
-  return <h1>User Dashboard</h1>;
-}
+import UserDashboard from "./pages/UserDashboard";
 
 function AdminDashboard() {
   return <h1>Admin Dashboard</h1>;

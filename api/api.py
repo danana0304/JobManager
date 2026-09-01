@@ -226,21 +226,9 @@ def get_applications(userid):
         for app in applications
     ])
 
-@app.route('/applications/<int:userid>')
-def get_applications(userid):
-    applications = Application.query.filter_by(userid=userid).all()
-
-    return jsonify([
-        {
-            'postingid': app.postingid,
-            'userid': app.userid,
-            'status': app.status
-        }
-        for app in applications
-    ])
 
 @app.route('/applications')
-def get_applications(userid):
+def get_all_applications():
     applications = Application.query.all()
 
     return jsonify([
