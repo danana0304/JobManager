@@ -16,7 +16,7 @@ function App() {
   const [successMessage, setSuccessMessage] = useState("");
 
   const fetchUsers = () => {
-    fetch('${process.env.REACT_APP_API_URL}/users')
+    fetch(`${process.env.REACT_APP_API_URL}/users`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch users");
         return res.json();
@@ -49,7 +49,7 @@ function App() {
     setError(null);
     setSuccessMessage("");
 
-    fetch('${process.env.REACT_APP_API_URL}/users', {
+    fetch(`${process.env.REACT_APP_API_URL}/users`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
