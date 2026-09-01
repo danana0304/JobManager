@@ -198,6 +198,62 @@ def get_postings():
         for posting in postings
     ])
 
+@app.route('/postings/not-applied/<int:userid>')
+def get_postings_not_applied(userid):
+    applied_postings = db.session.query(Application.postingid).filter(Application.userid == userid)
+
+    postings = Posting.query.filter(~Posting.postingid.in_(applied_postings)).all()
+
+    return jsonify([
+        {
+            'postingid': posting.postingid,
+            'company': posting.company,
+            'position': posting.position
+        }
+        for posting in postings
+    ])
+
+@app.route('/applications/<int:userid>')
+def get_applications(userid):
+    applications = Application.query.filter_by(userid=userid).all()
+
+    return jsonify([
+        {
+            'postingid': app.postingid,
+            'userid': app.userid,
+            'status': app.status
+        }
+        for app in applications
+    ])
+
+@app.route('/applications/<int:userid>')
+def get_applications(userid):
+    applications = Application.query.filter_by(userid=userid).all()
+
+    return jsonify([
+        {
+            'postingid': app.postingid,
+            'userid': app.userid,
+            'status': app.status
+        }
+        for app in applications
+    ])
+
+@app.route('/applications')
+def get_applications(userid):
+    applications = Application.query.all()
+
+    return jsonify([
+        {
+            'postingid': app.postingid,
+            'userid': app.userid,
+            'status': app.status
+        }
+        for app in applications
+    ])
+
+
+
 @app.route('/tables')
 def get_tables():
     result = db.session.execute(db.text("""

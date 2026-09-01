@@ -21,15 +21,6 @@ CREATE TABLE IF NOT EXISTS UserSkills (
     PRIMARY KEY (UserId, SkillId)
 );
 
-CREATE TABLE IF NOT EXISTS Admins (
-    AdminId SERIAL PRIMARY KEY,
-    Email VARCHAR(255) NOT NULL UNIQUE,
-    Phone VARCHAR(20),
-    Company VARCHAR(255),
-    Address VARCHAR(255),
-    Password VARCHAR(255) NOT NULL
-);
-
 CREATE TABLE IF NOT EXISTS Postings (
     PostingId SERIAL PRIMARY KEY,
     Company VARCHAR(255) NOT NULL,
