@@ -72,6 +72,19 @@ def get_users():
         for user in users
     ])
 
+@app.route('/postings')
+def get_postings():
+    postings = Posting.query.all()
+
+    return jsonify([
+        {
+            'postingid': posting.postingid,
+            'company': posting.company,
+            'position': posting.position
+        }
+        for posting in postings
+    ])
+
 @app.route('/tables')
 def get_tables():
     result = db.session.execute(db.text("""
