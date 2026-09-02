@@ -23,7 +23,8 @@
 }
 
 .user-dashboard-header h1 {
-  margin: 0;
+  margin: 2px;
+  margin-left: 10px;
   color: #000000;
 }
 
@@ -38,8 +39,8 @@
 .user-dashboard-item {
   padding: 18px 20px;
   border-radius: 12px;
-  background: #f8fbff;
-  border: 1px solid #dfeafc;
+  background: #f8feff;
+  border: 1px solid #e5f7f9;
 }
 
 .user-dashboard-item strong {
@@ -124,12 +125,12 @@
 }
 
 .tab-button:hover {
-  color: #2563eb;
+  color: #259feb;
 }
 
 .tab-button.active {
-  color: #2563eb;
-  border-bottom-color: #2563eb;
+  color: #259feb;
+  border-bottom-color: #259feb;
 }
 
 .user-dashboard-item {

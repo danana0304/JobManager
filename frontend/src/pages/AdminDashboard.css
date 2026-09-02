@@ -26,7 +26,7 @@
 }
 
 .admin-dashboard-header h1 {
-  margin: 0;
+  margin-top: 10px;
   color: #1f2d3d;
 }
 
@@ -59,8 +59,13 @@
 
 .admin-section h2 {
   margin: 0 0 14px;
-  color: #1f2d3d;
+  color: #000000;
   font-size: 1.2rem;
+}
+
+.my-postings-title {
+  padding: 15px;
+  border-bottom: 2px solid #56e4fa;
 }
 
 .admin-section-header {

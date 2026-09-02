@@ -163,7 +163,6 @@ function UserDashboard() {
           </button>
         </div>
 
-        {loading && <p className="user-dashboard-loading">Loading data...</p>}
         {error && <p className="user-dashboard-error">{error}</p>}
 
         {!loading && !error && activeTab === "available" && (
