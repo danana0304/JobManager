@@ -375,6 +375,26 @@ def get_postings_not_applied(userid):
         for posting in postings
     ])
 
+@app.route('/users/<int:userid>/posted-applications', methods=['GET'])
+def get_applications_for_user_postings(userid):
+    applications = (
+        db.session.query(Application)
+        .join(Posting, Application.postingid == Posting.postingid)
+        .filter(Posting.postedby == userid)
+        .all()
+    )
+
+    return jsonify([
+        {
+            'postingid': app.postingid,
+            'userid': app.userid,
+            'status': app.status.value if hasattr(app.status, 'value') else app.status,
+            'company': app.posting.company if hasattr(app, 'posting') else None,
+            'position': app.posting.position if hasattr(app, 'posting') else None
+        }
+        for app in applications
+    ]), 200
+
 @app.route('/applications/users/<int:userid>')
 def get_applications(userid):
     applications = Application.query.filter_by(userid=userid).all()
