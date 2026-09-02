@@ -183,6 +183,39 @@ def update_user_role(userid):
         'usertype': user.usertype.value if isinstance(user.usertype, UserType) else user.usertype
     }), 200
 
+@app.route('/applications/postings/<int:postingid>/users/<int:userid>', methods=['PUT'])
+def update_application_status(postingid, userid):
+    data = request.get_json()
+
+    if not data or 'status' not in data:
+        return jsonify({'error': 'status is required'}), 400
+
+    new_status = data.get('status')
+
+    valid_statuses = ['Applied', 'Interviewing', 'Rejected', 'Accepted']
+    if new_status not in valid_statuses:
+        return jsonify({
+            'error': f'Invalid status. Must be one of: Applied, Interviewing, Rejected, Accepted'
+        }), 400
+
+    application = Application.query.filter_by(
+        postingid=postingid,
+        userid=userid
+    ).first()
+
+    if not application:
+        return jsonify({'error': 'Application not found'}), 404
+
+    application.status = new_status
+    db.session.commit()
+
+    return jsonify({
+        'message': 'Application status updated successfully',
+        'postingid': application.postingid,
+        'userid': application.userid,
+        'status': application.status
+    }), 200
+
 @app.route('/me') 
 def get_current_user(): 
     if not current_user.is_authenticated: 
