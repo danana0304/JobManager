@@ -345,7 +345,7 @@ def get_user_skills(userid):
 
 @app.route('/postings')
 def get_postings():
-    postings = Posting.query.all()
+    postings = Posting.query.order_by(Posting.postingid.desc()).all()
 
     return jsonify([
         {
@@ -362,7 +362,12 @@ def get_postings():
 def get_postings_not_applied(userid):
     applied_postings = db.session.query(Application.postingid).filter(Application.userid == userid)
 
-    postings = Posting.query.filter(~Posting.postingid.in_(applied_postings)).all()
+    postings = (
+        Posting.query
+        .filter(~Posting.postingid.in_(applied_postings))
+        .order_by(Posting.postingid.desc())
+        .all()
+    )
 
     return jsonify([
         {
@@ -410,7 +415,12 @@ def get_user_postings(userid):
         return jsonify({'error': 'User not found'}), 404
 
     # Query all postings created by this user
-    postings = Posting.query.filter_by(postedby=userid).all()
+    postings = (
+        Posting.query
+        .filter_by(postedby=userid)
+        .order_by(Posting.postingid.desc())
+        .all()
+    )
 
     return jsonify([
         {
@@ -425,7 +435,21 @@ def get_user_postings(userid):
 
 @app.route('/applications/users/<int:userid>')
 def get_applications(userid):
-    applications = Application.query.filter_by(userid=userid).all()
+    applications = (
+        Application.query
+        .filter_by(userid=userid)
+        .order_by(
+            db.case(
+                (Application.status == 'Accepted', 1),
+                (Application.status == 'Interviewing', 2),
+                (Application.status == 'Applied', 3),
+                (Application.status == 'Rejected', 4),
+                else_=5
+            ),
+            Application.postingid.desc()
+        )
+        .all()
+    )
 
     return jsonify([
         {
@@ -439,7 +463,20 @@ def get_applications(userid):
 
 @app.route('/applications')
 def get_all_applications():
-    applications = Application.query.all()
+    applications = (
+        Application.query
+        .order_by(
+            db.case(
+                (Application.status == 'Accepted', 1),
+                (Application.status == 'Interviewing', 2),
+                (Application.status == 'Applied', 3),
+                (Application.status == 'Rejected', 4),
+                else_=5
+            ),
+            Application.postingid.desc()
+        )
+        .all()
+    )
 
     return jsonify([
         {

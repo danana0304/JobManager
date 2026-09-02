@@ -11,6 +11,9 @@ function AdminDashboard() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [expandedPostingId, setExpandedPostingId] = useState(null);
+  const [applicants, setApplicants] = useState({});
+  const [loadingApplicants, setLoadingApplicants] = useState(false);
   const navigate = useNavigate();
   const currentUser = JSON.parse(
     localStorage.getItem("jobmanager_user") || "null",
@@ -35,6 +38,68 @@ function AdminDashboard() {
   useEffect(() => {
     if (userId) loadPostings();
   }, [userId]);
+
+  const toggleApplicants = async (postingId) => {
+    if (expandedPostingId === postingId) {
+      setExpandedPostingId(null);
+      return;
+    }
+
+    setExpandedPostingId(postingId);
+    setLoadingApplicants(true);
+    setError("");
+
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/postings/${postingId}/applicants`,
+      );
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data.error || "Failed to load applicants");
+        return;
+      }
+      setApplicants((currentApplicants) => ({
+        ...currentApplicants,
+        [postingId]: data,
+      }));
+    } catch (err) {
+      setError("Unable to load applicants.");
+    } finally {
+      setLoadingApplicants(false);
+    }
+  };
+
+  const handleStatusChange = async (postingId, applicantId, status) => {
+    setError("");
+
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/applications/postings/${postingId}/users/${applicantId}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status }),
+        },
+      );
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Failed to update application status");
+        return;
+      }
+
+      setApplicants((currentApplicants) => ({
+        ...currentApplicants,
+        [postingId]: currentApplicants[postingId].map((applicant) =>
+          applicant.user.userid === applicantId
+            ? { ...applicant, status: data.status }
+            : applicant,
+        ),
+      }));
+    } catch (err) {
+      setError("Unable to update application status.");
+    }
+  };
 
   const handleCreatePosting = async (event) => {
     event.preventDefault();
@@ -111,9 +176,62 @@ function AdminDashboard() {
             <ul className="admin-posting-list">
               {postings.map((posting) => (
                 <li key={posting.postingid} className="admin-posting-item">
-                  <strong>{posting.company}</strong>
-                  <span>{posting.position}</span>
-                  {posting.description && <p>{posting.description}</p>}
+                  <button
+                    type="button"
+                    className="posting-accordion-button"
+                    onClick={() => toggleApplicants(posting.postingid)}
+                    aria-expanded={expandedPostingId === posting.postingid}
+                  >
+                    <span className="posting-accordion-title">
+                      <strong>{posting.position}</strong>
+                      <span>{posting.company}</span>
+                      {posting.description && (
+                        <small>{posting.description}</small>
+                      )}
+                    </span>
+                    <span aria-hidden="true">
+                      {expandedPostingId === posting.postingid ? "−" : "+"}
+                    </span>
+                  </button>
+
+                  {expandedPostingId === posting.postingid && (
+                    <div className="applicants-panel">
+                      {loadingApplicants && <p>Loading applicants...</p>}
+                      {!loadingApplicants &&
+                        (applicants[posting.postingid] || []).length === 0 && (
+                          <p>No applicants yet.</p>
+                        )}
+                      {!loadingApplicants &&
+                        applicants[posting.postingid]?.map((applicant) => (
+                          <div
+                            key={applicant.user.userid}
+                            className="applicant-row"
+                          >
+                            <div>
+                              <strong>{applicant.user.email}</strong>
+                              <span>
+                                {applicant.user.phone || "No phone provided"}
+                              </span>
+                            </div>
+                            <select
+                              value={applicant.status}
+                              onChange={(event) =>
+                                handleStatusChange(
+                                  posting.postingid,
+                                  applicant.user.userid,
+                                  event.target.value,
+                                )
+                              }
+                            >
+                              <option value="Applied">Applied</option>
+                              <option value="Interviewing">Interviewing</option>
+                              <option value="Accepted">Accepted</option>
+                              <option value="Rejected">Rejected</option>
+                            </select>
+                          </div>
+                        ))}
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>

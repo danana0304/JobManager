@@ -3,7 +3,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f4f8ff 0%, #edf4ff 100%);
+  background: #d8fcfc;
   padding: 24px;
   box-sizing: border-box;
 }
@@ -23,15 +23,14 @@
 }
 
 .register-logo {
-  width: 80px;
-  height: 80px;
-  margin-bottom: 10px;
+  width: 50px;
+  margin: 30px;
 }
 
 .register-title {
-  margin: 0;
+  margin: 20px;
   color: #1f2d3d;
-  font-size: 2rem;
+  font-size: 1.8rem;
 }
 
 .register-form {
@@ -51,14 +50,15 @@
 }
 
 .register-input:focus {
-  border-color: #2563eb;
+  border-color: #e8ebf0;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
 .register-button {
-  border: none;
-  background: #2563eb;
-  color: #fff;
+  border: 10px;
+  border-color: #56e4fa;
+  background: #ddfbff;
+  color: #56e4fa;
   padding: 12px 16px;
   border-radius: 10px;
   font-size: 1rem;
@@ -67,20 +67,21 @@
 }
 
 .register-button:hover {
-  background: #1d4ed8;
+  background: #d2eff3;
 }
 
 .login-link-button {
   width: 100%;
   margin-top: 14px;
   padding: 12px 16px;
-  border: 1px solid #c7d2fe;
-  border-radius: 10px;
-  background: #eef4ff;
-  color: #1e3a8a;
+  border: none;
+  background: #56e4fa;
+  color: #ffffff;
+  margin-top: 15px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
+  border-radius: 10px;
   transition: 0.2s ease;
 }
 
@@ -89,7 +90,7 @@
 }
 
 .register-error {
-  color: #b91c1c;
+  color: #e47171;
   margin-top: 14px;
   text-align: center;
 }

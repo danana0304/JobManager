@@ -177,8 +177,13 @@ function UserDashboard() {
                 {availablePostings.map((posting) => (
                   <li key={posting.postingid} className="user-dashboard-item">
                     <div className="posting-content">
-                      <strong>{posting.company}</strong>
-                      <span>{posting.position}</span>
+                      <strong>{posting.position}</strong>
+                      <span>{posting.company}</span>
+                      {posting.description && (
+                        <p className="posting-description">
+                          {posting.description}
+                        </p>
+                      )}
                     </div>
                     <button
                       className={`apply-button${posting.applied ? " applied" : ""}`}
@@ -212,12 +217,17 @@ function UserDashboard() {
                       <div className="posting-content">
                         <strong>
                           {posting
-                            ? posting.company
+                            ? posting.position
                             : `Posting #${app.postingid}`}
                         </strong>
                         <span>
-                          {posting ? posting.position : "Unknown position"}
+                          {posting ? posting.company : "Unknown company"}
                         </span>
+                        {posting?.description && (
+                          <p className="posting-description">
+                            {posting.description}
+                          </p>
+                        )}
                       </div>
                       <div className="application-status">
                         <span className={`status ${app.status.toLowerCase()}`}>

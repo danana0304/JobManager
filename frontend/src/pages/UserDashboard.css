@@ -1,6 +1,6 @@
 .user-dashboard-page {
   min-height: 100vh;
-  background: #f5f8ff;
+  background: #d8fcfc;
   padding: 40px 20px;
   box-sizing: border-box;
 }
@@ -11,7 +11,7 @@
   background: #ffffff;
   border-radius: 18px;
   box-shadow: 0 16px 40px rgba(37, 99, 235, 0.08);
-  padding: 24px;
+  padding: 50px 30px;
 }
 
 .user-dashboard-header {
@@ -19,12 +19,12 @@
   justify-content: space-between;
   align-items: center;
   gap: 16px;
-  margin-bottom: 20px;
+  margin-bottom: 40px;
 }
 
 .user-dashboard-header h1 {
   margin: 0;
-  color: #1f2d3d;
+  color: #000000;
 }
 
 .user-dashboard-list {
@@ -63,7 +63,7 @@
 .logout-button-small {
   box-sizing: border-box;
   padding: 6px 12px;
-  background: #2563eb;
+  background: #56e4fa;
   color: #ffffff;
   border: none;
   border-radius: 8px;
@@ -75,21 +75,7 @@
 }
 
 .logout-button-small:hover {
-  background: #1d4ed8;
-}
-
-.logout-button {
-  border: none;
-  background: #ef4444;
-  color: white;
-  border-radius: 10px;
-  padding: 10px 14px;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.logout-button:hover {
-  background: #dc2626;
+  background: #56e4fa;
 }
 
 .dashboard-tabs {
@@ -107,7 +93,7 @@
   height: 34px;
   padding: 0;
   background: #ffffff;
-  color: #2563eb;
+  color: #56e4fa;
   border: 1px solid #93c5fd;
   border-radius: 8px;
   font-size: 1.25rem;
@@ -158,6 +144,7 @@
 
 .posting-content strong {
   display: block;
+  font-size: 1.1rem;
 }
 
 .posting-content span {
@@ -167,9 +154,16 @@
   margin-top: 4px;
 }
 
+.posting-description {
+  margin: 8px 0 0;
+  color: #475569;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
 .apply-button {
   padding: 8px 16px;
-  background: #2563eb;
+  background: #56e4fa;
   color: #ffffff;
   border: none;
   border-radius: 8px;
@@ -182,7 +176,7 @@
 }
 
 .apply-button:hover {
-  background: #1d4ed8;
+  background: #52dcf1;
 }
 
 .apply-button.applied,
@@ -215,7 +209,7 @@
 
 .status.interviewing {
   background: #fef08a;
-  color: #713f12;
+  color: #123271;
 }
 
 .status.accepted {
