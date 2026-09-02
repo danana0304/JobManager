@@ -375,24 +375,52 @@ def get_postings_not_applied(userid):
         for posting in postings
     ])
 
-@app.route('/users/<int:userid>/posted-applications', methods=['GET'])
-def get_applications_for_user_postings(userid):
-    applications = (
-        db.session.query(Application)
-        .join(Posting, Application.postingid == Posting.postingid)
-        .filter(Posting.postedby == userid)
+@app.route('/postings/<int:postingid>/applicants')
+def get_posting_applicants(postingid):
+    posting = db.session.get(Posting, postingid)
+    if not posting:
+        return jsonify({'error': 'Posting not found'}), 404
+
+    results = (
+        db.session.query(Application, User)
+        .join(User, Application.userid == User.userid)
+        .filter(Application.postingid == postingid)
         .all()
     )
 
     return jsonify([
         {
             'postingid': app.postingid,
-            'userid': app.userid,
-            'status': app.status.value if hasattr(app.status, 'value') else app.status,
-            'company': app.posting.company if hasattr(app, 'posting') else None,
-            'position': app.posting.position if hasattr(app, 'posting') else None
+            'status': app.status,
+            'user': {
+                'userid': user.userid,
+                'email': user.email,
+                'phone': user.phone,
+                'address': user.address
+            }
         }
-        for app in applications
+        for app, user in results
+    ]), 200
+
+@app.route('/users/<int:userid>/postings')
+def get_user_postings(userid):
+    # Verify user exists
+    user = db.session.get(User, userid)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    # Query all postings created by this user
+    postings = Posting.query.filter_by(postedby=userid).all()
+
+    return jsonify([
+        {
+            'postingid': posting.postingid,
+            'company': posting.company,
+            'position': posting.position,
+            'description': posting.description,
+            'postedby': posting.postedby
+        }
+        for posting in postings
     ]), 200
 
 @app.route('/applications/users/<int:userid>')
