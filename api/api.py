@@ -126,17 +126,14 @@ def create_skill():
 def create_application():
     data = request.get_json() or {}
 
-    user_id = data.get('userid')
-    if not user_id:
-        return jsonify({'error': 'userid is required'}), 400
-
-    user = db.session.get(Posting, user_id)
-    if not user:
-        return jsonify({'error': 'User not found'}), 404
-
+    # Extract postingid and fallback userid if current_user is anonymous
     posting_id = data.get('postingid')
+    user_id = current_user.userid if current_user.is_authenticated else data.get('userid')
+
     if not posting_id:
         return jsonify({'error': 'postingid is required'}), 400
+    if not user_id:
+        return jsonify({'error': 'userid is required'}), 400
 
     posting = db.session.get(Posting, posting_id)
     if not posting:
