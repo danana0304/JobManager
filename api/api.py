@@ -155,9 +155,7 @@ def create_application():
         'status': application.status
     }), 201
 
-# Endpoint to create a posting including description and postedby
 @app.route('/postings', methods=['POST'])
-@login_required
 def create_posting():
     data = request.get_json()
     company = data.get('company')
