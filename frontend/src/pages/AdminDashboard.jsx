@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./AdminDashboard.css";
 
@@ -19,7 +19,7 @@ function AdminDashboard() {
   );
   const userId = currentUser?.userid;
 
-  const loadPostings = async () => {
+  const loadPostings = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
@@ -32,11 +32,11 @@ function AdminDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId]);
 
   useEffect(() => {
     if (userId) loadPostings();
-  }, [userId]);
+  }, [loadPostings, userId]);
 
   const toggleApplicants = async (postingId) => {
     if (expandedPostingId === postingId) {
