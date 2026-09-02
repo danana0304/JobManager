@@ -185,6 +185,51 @@ def create_posting():
         'postedby': posting.postedby
     }), 201
 
+
+@app.route('/audit-logs', methods=['POST'])
+def create_audit_log():
+    data = request.get_json() or {}
+
+    action = data.get('action')
+    entity_type = data.get('entitytype')
+    actor_id = data.get('actoruserid')
+
+    # Basic validation matching check constraint
+    valid_actions = ['CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT']
+    if not action or action not in valid_actions:
+        return jsonify({
+            'error': f'Invalid or missing action. Must be one of: CREATE, UPDATE, DELETE, LOGIN, LOGOUT'
+        }), 400
+
+    if not entity_type:
+        return jsonify({'error': 'entitytype is required'}), 400
+
+    try:
+        log_entry = AuditLog(
+            actoruserid=actor_id,
+            action=action,
+            entitytype=entity_type,
+            entityid=data.get('entityid'),
+            oldvalues=data.get('oldvalues'),
+            newvalues=data.get('newvalues'),
+            ipaddress=request.remote_addr,
+            useragent=request.user_agent.string
+        )
+
+        db.session.add(log_entry)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': 'Database error', 'details': str(e)}), 500
+
+    return jsonify({
+        'message': 'Audit log recorded',
+        'auditid': log_entry.auditid,
+        'action': log_entry.action,
+        'entitytype': log_entry.entitytype,
+        'actoruserid': log_entry.actoruserid
+    }), 201
+
 @app.route('/users/<int:userid>/role', methods=['PUT'])
 def update_user_role(userid):
     data = request.get_json()
@@ -312,6 +357,21 @@ class Application(db.Model):
     postingid = db.Column(db.Integer, db.ForeignKey('postings.postingid', ondelete='CASCADE'), primary_key=True)
     userid = db.Column(db.Integer, db.ForeignKey('users.userid', ondelete='CASCADE'), primary_key=True)
     status = db.Column(db.Enum('Applied', 'Interviewing', 'Rejected', 'Accepted', name='application_status'), nullable=False, server_default='Applied')
+
+
+class AuditLog(db.Model):
+    __tablename__ = 'auditlog'
+
+    auditid = db.Column(db.BigInteger, primary_key=True)
+    actoruserid = db.Column(db.Integer, db.ForeignKey('users.userid', ondelete='SET NULL'), nullable=True)
+    action = db.Column(db.String(50), nullable=False)
+    entitytype = db.Column(db.String(50), nullable=False)
+    entityid = db.Column(db.BigInteger, nullable=True)
+    oldvalues = db.Column(db.JSON, nullable=True)
+    newvalues = db.Column(db.JSON, nullable=True)
+    ipaddress = db.Column(db.String(45), nullable=True)
+    useragent = db.Column(db.Text, nullable=True)
+    createdat = db.Column(db.DateTime(timezone=True), server_default=db.func.now(), nullable=False)
 
 @app.route('/users')
 def get_users():
@@ -497,6 +557,26 @@ def get_skills():
         }
         for skill in skills
     ])
+
+@app.route('/audit-logs', methods=['GET'])
+def get_audit_logs():
+    logs = AuditLog.query.order_by(AuditLog.createdat.desc()).all()
+
+    return jsonify([
+        {
+            'auditid': log.auditid,
+            'actoruserid': log.actoruserid,
+            'action': log.action,
+            'entitytype': log.entitytype,
+            'entityid': log.entityid,
+            'oldvalues': log.oldvalues,
+            'newvalues': log.newvalues,
+            'ipaddress': log.ipaddress,
+            'useragent': log.useragent,
+            'createdat': log.createdat.isoformat() if log.createdat else None
+        }
+        for log in logs
+    ]), 200
 
 @app.route('/tables')
 def get_tables():
