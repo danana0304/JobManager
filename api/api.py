@@ -161,6 +161,7 @@ def create_posting():
     company = data.get('company')
     position = data.get('position')
     description = data.get('description')
+    postedby = data.get('postedby')
 
     if not company or not position:
         return jsonify({'error': 'Company and position are required'}), 400
@@ -169,7 +170,7 @@ def create_posting():
         company=company,
         position=position,
         description=description,
-        postedby=current_user.userid
+        postedby=postedby
     )
 
     db.session.add(posting)
