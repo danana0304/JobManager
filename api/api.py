@@ -147,13 +147,41 @@ def create_application():
 
     db.session.add(application)
     db.session.commit()
-    
+
     return jsonify({
         'message': 'Application created successfully',
         'postingid': application.postingid,
         'userid': application.userid,
         'status': application.status
     }), 201
+
+@app.route('/users/<int:userid>/role', methods=['PUT'])
+def update_user_role(userid):
+    data = request.get_json()
+    if not data or 'usertype' not in data:
+        return jsonify({'error': 'usertype is required'}), 400
+
+    new_usertype_str = data.get('usertype')
+
+    try:
+        new_usertype = UserType[new_usertype_str]
+    except KeyError:
+        return jsonify({
+            'error': f'Invalid usertype. Must be one of: User, Admin'
+        }), 400
+
+    user = db.session.get(User, userid)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    user.usertype = new_usertype
+    db.session.commit()
+
+    return jsonify({
+        'message': 'User type updated successfully',
+        'userid': user.userid,
+        'usertype': user.usertype.value if isinstance(user.usertype, UserType) else user.usertype
+    }), 200
 
 @app.route('/me') 
 def get_current_user(): 
