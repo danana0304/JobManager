@@ -121,6 +121,42 @@ def create_skill():
         'name': skill.name
     }), 201
 
+
+@app.route('/applications', methods=['POST'])
+@login_required
+def create_application():
+    data = request.get_json() or {}
+
+    posting_id = data.get('postingid')
+    if not posting_id:
+        return jsonify({'error': 'postingid is required'}), 400
+
+    posting = db.session.get(Posting, posting_id)
+    if not posting:
+        return jsonify({'error': 'Posting not found'}), 404
+
+    existing_application = Application.query.filter_by(
+        postingid=posting_id,
+        userid=current_user.userid
+    ).first()
+
+    if existing_application:
+        return jsonify({'error': 'You have already applied to this posting'}), 409
+
+    application = Application(
+        postingid=posting_id,
+        userid=current_user.userid
+    )
+
+    db.session.add(application)
+    db.session.commit()
+
+    return jsonify({
+        'postingid': application.postingid,
+        'userid': application.userid,
+        'status': application.status
+    }), 201
+
 @app.route('/me') 
 def get_current_user(): 
     if not current_user.is_authenticated: 
