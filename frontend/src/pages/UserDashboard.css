@@ -87,19 +87,14 @@
 }
 
 .refresh-button {
-  align-self: center;
-  margin-left: auto;
-  margin-bottom: 8px;
   width: 34px;
   height: 34px;
   padding: 0;
   background: #ffffff;
-  color: #56e4fa;
-  border: 1px solid #93c5fd;
-  border-radius: 8px;
+  color: #000000;
+  border: none;
   font-size: 1.25rem;
   line-height: 1;
-  font-weight: 600;
   cursor: pointer;
 }
 

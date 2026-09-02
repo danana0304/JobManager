@@ -79,9 +79,8 @@
   height: 34px;
   padding: 0;
   background: #ffffff;
-  color: #56e4fa;
-  border: 1px solid #93c5fd;
-  border-radius: 8px;
+  color: #000000;
+  border: none;
   font-size: 1.25rem;
   line-height: 1;
   cursor: pointer;
@@ -103,7 +102,6 @@
 .admin-posting-item {
   padding: 0;
   background: #f8fbff;
-  border: 1px solid #dfeafc;
   border-radius: 10px;
   overflow: hidden;
 }

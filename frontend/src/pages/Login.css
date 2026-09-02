@@ -78,6 +78,7 @@
 
 .register-button {
   margin-top: 14px;
+  transition: 0.2s ease;
   border: 1px solid #56e4fa;
   background: #eef4ff;
 }
