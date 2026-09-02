@@ -123,7 +123,6 @@ def create_skill():
 
 
 @app.route('/applications', methods=['POST'])
-@login_required
 def create_application():
     data = request.get_json() or {}
 
