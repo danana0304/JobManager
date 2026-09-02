@@ -1,6 +1,9 @@
+import { useNavigate } from "react-router-dom";
 import "./AdminDashboard.css";
 
 function AdminDashboard() {
+  const navigate = useNavigate();
+
   return (
     <div className="admin-dashboard-page">
       <div className="admin-dashboard-card">
@@ -11,7 +14,7 @@ function AdminDashboard() {
             className="logout-button"
             onClick={() => {
               localStorage.removeItem("jobmanager_user");
-              window.location.href = "/login";
+              navigate("/login", { replace: true });
             }}
           >
             Logout

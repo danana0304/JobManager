@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./UserDashboard.css";
 
 function UserDashboard() {
@@ -8,6 +9,7 @@ function UserDashboard() {
   const [allPostings, setAllPostings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const currentUser = JSON.parse(
     localStorage.getItem("jobmanager_user") || "null",
@@ -15,55 +17,107 @@ function UserDashboard() {
   const userId = currentUser?.userid;
   const userName = currentUser?.email?.split("@")[0] || "User";
 
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      setError("");
-      try {
-        // Fetch all postings
-        const postingsRes = await fetch(
-          `${process.env.REACT_APP_API_URL}/postings`,
-        );
-        if (!postingsRes.ok) throw new Error("Failed to load postings");
-        const postingsData = await postingsRes.json();
-        setAllPostings(postingsData);
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      // Fetch all postings
+      const postingsRes = await fetch(
+        `${process.env.REACT_APP_API_URL}/postings`,
+      );
+      if (!postingsRes.ok) throw new Error("Failed to load postings");
+      const postingsData = await postingsRes.json();
+      setAllPostings(postingsData);
 
-        // Fetch available postings (not yet applied)
-        const availableRes = await fetch(
-          `${process.env.REACT_APP_API_URL}/postings/not-applied/${userId}`,
-        );
-        if (!availableRes.ok)
-          throw new Error("Failed to load available postings");
-        const availableData = await availableRes.json();
-        setAvailablePostings(availableData);
+      // Fetch available postings (not yet applied)
+      const availableRes = await fetch(
+        `${process.env.REACT_APP_API_URL}/postings/not-applied/${userId}`,
+      );
+      if (!availableRes.ok)
+        throw new Error("Failed to load available postings");
+      const availableData = await availableRes.json();
+      setAvailablePostings(availableData);
 
-        // Fetch user's applications
-        const applicationsRes = await fetch(
-          `${process.env.REACT_APP_API_URL}/applications/${userId}`,
-        );
-        if (!applicationsRes.ok) throw new Error("Failed to load applications");
-        const applicationsData = await applicationsRes.json();
-        setMyApplications(applicationsData);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (userId) {
-      loadData();
+      // Fetch user's applications
+      const applicationsRes = await fetch(
+        `${process.env.REACT_APP_API_URL}/applications/users/${userId}`,
+      );
+      if (!applicationsRes.ok) throw new Error("Failed to load applications");
+      const applicationsData = await applicationsRes.json();
+      setMyApplications(applicationsData);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
   }, [userId]);
 
+  useEffect(() => {
+    if (userId) {
+      loadData();
+    }
+  }, [loadData, userId]);
+
   const handleLogout = () => {
     localStorage.removeItem("jobmanager_user");
-    window.location.href = "/login";
+    navigate("/login", { replace: true });
   };
 
-  const handleApply = (postingId) => {
-    console.log(`Apply clicked for posting ${postingId}`);
-    // TODO: Implement apply functionality
+  const handleApply = async (postingId) => {
+    setError("");
+    setAvailablePostings((postings) =>
+      postings.map((posting) =>
+        posting.postingid === postingId
+          ? { ...posting, applied: true }
+          : posting,
+      ),
+    );
+
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/applications`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            postingid: postingId,
+            userid: userId,
+          }),
+        },
+      );
+      const data = await response.json();
+
+      if (!response.ok) {
+        setAvailablePostings((postings) =>
+          postings.map((posting) =>
+            posting.postingid === postingId
+              ? { ...posting, applied: false }
+              : posting,
+          ),
+        );
+        setError(data.error || "Failed to submit application");
+        return;
+      }
+      setMyApplications((applications) => [
+        ...applications,
+        {
+          postingid: data.postingid,
+          userid: data.userid,
+          status: data.status,
+        },
+      ]);
+    } catch (err) {
+      setAvailablePostings((postings) =>
+        postings.map((posting) =>
+          posting.postingid === postingId
+            ? { ...posting, applied: false }
+            : posting,
+        ),
+      );
+      setError("Unable to submit application.");
+    }
   };
 
   const getPostingDetails = (postingId) => {
@@ -97,6 +151,16 @@ function UserDashboard() {
           >
             My Applications
           </button>
+          <button
+            type="button"
+            className="refresh-button"
+            onClick={loadData}
+            disabled={loading}
+            aria-label="Refresh results"
+            title="Refresh results"
+          >
+            &#x21bb;
+          </button>
         </div>
 
         {loading && <p className="user-dashboard-loading">Loading data...</p>}
@@ -117,10 +181,11 @@ function UserDashboard() {
                       <span>{posting.position}</span>
                     </div>
                     <button
-                      className="apply-button"
+                      className={`apply-button${posting.applied ? " applied" : ""}`}
                       onClick={() => handleApply(posting.postingid)}
+                      disabled={posting.applied}
                     >
-                      Apply
+                      {posting.applied ? "Applied" : "Apply"}
                     </button>
                   </li>
                 ))}
