@@ -126,6 +126,14 @@ def create_skill():
 def create_application():
     data = request.get_json() or {}
 
+    user_id = data.get('userid')
+    if not user_id:
+        return jsonify({'error': 'userid is required'}), 400
+
+    user = db.session.get(Posting, user_id)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
     posting_id = data.get('postingid')
     if not posting_id:
         return jsonify({'error': 'postingid is required'}), 400
@@ -136,7 +144,7 @@ def create_application():
 
     existing_application = Application.query.filter_by(
         postingid=posting_id,
-        userid=current_user.userid
+        userid=user_id
     ).first()
 
     if existing_application:
@@ -144,7 +152,7 @@ def create_application():
 
     application = Application(
         postingid=posting_id,
-        userid=current_user.userid
+        userid=user_id
     )
 
     db.session.add(application)
@@ -278,7 +286,7 @@ def get_postings_not_applied(userid):
         for posting in postings
     ])
 
-@app.route('/applications/<int:userid>')
+@app.route('/applications/users/<int:userid>')
 def get_applications(userid):
     applications = Application.query.filter_by(userid=userid).all()
 
