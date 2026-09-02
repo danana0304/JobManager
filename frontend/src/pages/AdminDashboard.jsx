@@ -18,6 +18,7 @@ function AdminDashboard() {
     localStorage.getItem("jobmanager_user") || "null",
   );
   const userId = currentUser?.userid;
+  const userName = currentUser?.email?.split("@")[0] || "User";
 
   const loadPostings = useCallback(async () => {
     setLoading(true);
@@ -136,7 +137,7 @@ function AdminDashboard() {
     <div className="admin-dashboard-page">
       <div className="admin-dashboard-card">
         <div className="admin-dashboard-header">
-          <h1>Admin Dashboard</h1>
+          <h1>Job Postings for {userName}</h1>
           <button
             type="button"
             className="logout-button-small"
@@ -201,7 +202,7 @@ function AdminDashboard() {
                           className="applicant-row"
                         >
                           <div>
-                            <strong>{applicant.user.email}</strong>
+                            <span>{applicant.user.email}</span>
                             <span>
                               {applicant.user.phone || "No phone provided"}
                             </span>
