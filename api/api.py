@@ -124,28 +124,21 @@ def create_skill():
 
 @app.route('/applications', methods=['POST'])
 def create_application():
-    data = request.get_json() or {}
-
-    # Extract postingid and fallback userid if current_user is anonymous
+    data = request.get_json()
     posting_id = data.get('postingid')
-    user_id = current_user.userid if current_user.is_authenticated else data.get('userid')
-
-    if not posting_id:
-        return jsonify({'error': 'postingid is required'}), 400
-    if not user_id:
-        return jsonify({'error': 'userid is required'}), 400
-
+    user_id = data.get('userid')
+    if not posting_id or not user_id:
+        return jsonify({ 'error': 'postingid and userid are required' }), 400
     posting = db.session.get(Posting, posting_id)
     if not posting:
-        return jsonify({'error': 'Posting not found'}), 404
+        return jsonify({ 'error': 'Posting not found' }), 404
 
     existing_application = Application.query.filter_by(
         postingid=posting_id,
         userid=user_id
     ).first()
-
     if existing_application:
-        return jsonify({'error': 'You have already applied to this posting'}), 409
+        return jsonify({ 'error': 'You have already applied to this posting' }), 409
 
     application = Application(
         postingid=posting_id,
@@ -154,8 +147,9 @@ def create_application():
 
     db.session.add(application)
     db.session.commit()
-
+    
     return jsonify({
+        'message': 'Application created successfully',
         'postingid': application.postingid,
         'userid': application.userid,
         'status': application.status
