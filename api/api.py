@@ -155,6 +155,37 @@ def create_application():
         'status': application.status
     }), 201
 
+# Endpoint to create a posting including description and postedby
+@app.route('/postings', methods=['POST'])
+@login_required
+def create_posting():
+    data = request.get_json()
+    company = data.get('company')
+    position = data.get('position')
+    description = data.get('description')
+
+    if not company or not position:
+        return jsonify({'error': 'Company and position are required'}), 400
+
+    posting = Posting(
+        company=company,
+        position=position,
+        description=description,
+        postedby=current_user.userid
+    )
+
+    db.session.add(posting)
+    db.session.commit()
+
+    return jsonify({
+        'message': 'Posting created successfully',
+        'postingid': posting.postingid,
+        'company': posting.company,
+        'position': posting.position,
+        'description': posting.description,
+        'postedby': posting.postedby
+    }), 201
+
 @app.route('/users/<int:userid>/role', methods=['PUT'])
 def update_user_role(userid):
     data = request.get_json()
@@ -216,21 +247,21 @@ def update_application_status(postingid, userid):
         'status': application.status
     }), 200
 
-@app.route('/me') 
-def get_current_user(): 
-    if not current_user.is_authenticated: 
-        return jsonify({ 'logged_in': False }) 
+@app.route('/me')
+def get_current_user():
+    if not current_user.is_authenticated:
+        return jsonify({ 'logged_in': False })
     return jsonify({ 'logged_in': True, 'userid': current_user.userid, 'email': current_user.email, 'usertype': current_user.usertype.value if isinstance(current_user.usertype, UserType) else current_user.usertype })
 
-@app.route('/user') 
-@login_required 
-def user_dashboard(): 
+@app.route('/user')
+@login_required
+def user_dashboard():
     return jsonify({ 'message': 'Welcome to user dashboard', 'userid': current_user.userid, 'email': current_user.email })
 
 
-@app.route('/admin') 
-@admin_required 
-def admin_dashboard(): 
+@app.route('/admin')
+@admin_required
+def admin_dashboard():
     return jsonify({ 'message': 'Welcome to admin dashboard', 'userid': current_user.userid, 'email': current_user.email })
 
 
@@ -272,6 +303,8 @@ class Posting(db.Model):
     postingid = db.Column(db.Integer, primary_key=True)
     company = db.Column(db.String, nullable=False)
     position = db.Column(db.String, nullable=False)
+    description = db.Column(db.String(1000), nullable=True)
+    postedby = db.Column(db.Integer, db.ForeignKey('users.userid', ondelete='SET NULL'), nullable=True)
 
 
 class Application(db.Model):
@@ -318,7 +351,9 @@ def get_postings():
         {
             'postingid': posting.postingid,
             'company': posting.company,
-            'position': posting.position
+            'position': posting.position,
+            'description': posting.description,
+            'postedby': posting.postedby
         }
         for posting in postings
     ])
@@ -333,7 +368,9 @@ def get_postings_not_applied(userid):
         {
             'postingid': posting.postingid,
             'company': posting.company,
-            'position': posting.position
+            'position': posting.position,
+            'description': posting.description,
+            'postedby': posting.postedby
         }
         for posting in postings
     ])
