@@ -14,6 +14,7 @@ function AdminDashboard() {
   const [message, setMessage] = useState("");
   const [expandedPostingId, setExpandedPostingId] = useState(null);
   const [applicants, setApplicants] = useState({});
+  const [editingPostingId, setEditingPostingId] = useState(null);
   const navigate = useNavigate();
   const currentUser = JSON.parse(
     localStorage.getItem("jobmanager_user") || "null",
@@ -117,15 +118,21 @@ function AdminDashboard() {
     setMessage("");
 
     try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_URL}/postings`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ company, position, description }),
-        },
-      );
+      const isEditing = editingPostingId !== null;
+      const endpoint = isEditing
+        ? `${process.env.REACT_APP_API_URL}/postings/${editingPostingId}`
+        : `${process.env.REACT_APP_API_URL}/postings`;
+      const response = await fetch(endpoint, {
+        method: isEditing ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          company,
+          position,
+          description,
+          ...(isEditing ? {} : { postedby: userId }),
+        }),
+      });
       const data = await response.json();
 
       if (!response.ok) {
@@ -133,14 +140,21 @@ function AdminDashboard() {
         return;
       }
 
-      setPostings((currentPostings) => [...currentPostings, data]);
+      setPostings((currentPostings) =>
+        isEditing
+          ? currentPostings.map((posting) =>
+              posting.postingid === editingPostingId ? data : posting,
+            )
+          : [...currentPostings, data],
+      );
       await createAuditLog({
-        action: "CREATE",
+        action: isEditing ? "UPDATE" : "CREATE",
         entityType: "Posting",
         actorUserId: userId,
         entityId: data.postingid,
         newValues: data,
       });
+      setEditingPostingId(null);
       setCompany("");
       setPosition("");
       setDescription("");
@@ -149,6 +163,42 @@ function AdminDashboard() {
       setError("Unable to create posting.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const startEditingPosting = (posting) => {
+    setEditingPostingId(posting.postingid);
+    setCompany(posting.company);
+    setPosition(posting.position);
+    setDescription(posting.description || "");
+    setMessage("");
+    setError("");
+  };
+
+  const handleDeletePosting = async (postingId) => {
+    setError("");
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/postings/${postingId}`,
+        { method: "DELETE", credentials: "include" },
+      );
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data.error || "Failed to delete posting");
+        return;
+      }
+      setPostings((currentPostings) =>
+        currentPostings.filter((posting) => posting.postingid !== postingId),
+      );
+      setExpandedPostingId(null);
+      await createAuditLog({
+        action: "DELETE",
+        entityType: "Posting",
+        actorUserId: userId,
+        entityId: postingId,
+      });
+    } catch (err) {
+      setError("Unable to delete posting.");
     }
   };
 
@@ -214,6 +264,20 @@ function AdminDashboard() {
                       {expandedPostingId === posting.postingid ? "−" : "+"}
                     </span>
                   </button>
+                  <div className="posting-actions">
+                    <button
+                      type="button"
+                      onClick={() => startEditingPosting(posting)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDeletePosting(posting.postingid)}
+                    >
+                      Delete
+                    </button>
+                  </div>
 
                   {expandedPostingId === posting.postingid && (
                     <div className="applicants-panel">
@@ -258,7 +322,7 @@ function AdminDashboard() {
         </section>
 
         <section className="admin-section">
-          <h2>Add Posting</h2>
+          <h2>{editingPostingId === null ? "Add Posting" : "Edit Posting"}</h2>
           <form className="posting-form" onSubmit={handleCreatePosting}>
             <input
               type="text"
@@ -281,8 +345,28 @@ function AdminDashboard() {
               rows="4"
             />
             <button type="submit" disabled={saving}>
-              {saving ? "Adding..." : "Add Posting"}
+              {saving
+                ? editingPostingId === null
+                  ? "Adding..."
+                  : "Saving..."
+                : editingPostingId === null
+                  ? "Add Posting"
+                  : "Save Posting"}
             </button>
+            {editingPostingId !== null && (
+              <button
+                type="button"
+                className="cancel-edit-button"
+                onClick={() => {
+                  setEditingPostingId(null);
+                  setCompany("");
+                  setPosition("");
+                  setDescription("");
+                }}
+              >
+                Cancel
+              </button>
+            )}
           </form>
         </section>
 

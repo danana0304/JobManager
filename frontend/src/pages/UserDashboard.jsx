@@ -138,6 +138,34 @@ function UserDashboard() {
     }
   };
 
+  const handleDeleteApplication = async (postingId) => {
+    setError("");
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/applications/postings/${postingId}/users/${userId}`,
+        { method: "DELETE", credentials: "include" },
+      );
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data.error || "Failed to withdraw application");
+        return;
+      }
+      setMyApplications((applications) =>
+        applications.filter(
+          (application) => application.postingid !== postingId,
+        ),
+      );
+      await createAuditLog({
+        action: "DELETE",
+        entityType: "Application",
+        actorUserId: userId,
+        entityId: postingId,
+      });
+    } catch (err) {
+      setError("Unable to withdraw application.");
+    }
+  };
+
   const getPostingDetails = (postingId) => {
     return allPostings.find((p) => p.postingid === postingId);
   };
@@ -250,6 +278,13 @@ function UserDashboard() {
                         <span className={`status ${app.status.toLowerCase()}`}>
                           {app.status}
                         </span>
+                        <button
+                          type="button"
+                          className="withdraw-button"
+                          onClick={() => handleDeleteApplication(app.postingid)}
+                        >
+                          Withdraw
+                        </button>
                       </div>
                     </li>
                   );
