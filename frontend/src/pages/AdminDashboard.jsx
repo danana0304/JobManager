@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { createAuditLog } from "../utils/audit";
 import "./AdminDashboard.css";
 
 function AdminDashboard() {
@@ -93,6 +94,17 @@ function AdminDashboard() {
             : applicant,
         ),
       }));
+      await createAuditLog({
+        action: "UPDATE",
+        entityType: "Application",
+        actorUserId: userId,
+        entityId: applicantId,
+        newValues: {
+          postingid: postingId,
+          userid: applicantId,
+          status: data.status,
+        },
+      });
     } catch (err) {
       setError("Unable to update application status.");
     }
@@ -122,6 +134,13 @@ function AdminDashboard() {
       }
 
       setPostings((currentPostings) => [...currentPostings, data]);
+      await createAuditLog({
+        action: "CREATE",
+        entityType: "Posting",
+        actorUserId: userId,
+        entityId: data.postingid,
+        newValues: data,
+      });
       setCompany("");
       setPosition("");
       setDescription("");
@@ -141,7 +160,13 @@ function AdminDashboard() {
           <button
             type="button"
             className="logout-button-small"
-            onClick={() => {
+            onClick={async () => {
+              await createAuditLog({
+                action: "LOGOUT",
+                entityType: "User",
+                actorUserId: userId,
+                entityId: userId,
+              });
               localStorage.removeItem("jobmanager_user");
               navigate("/login", { replace: true });
             }}

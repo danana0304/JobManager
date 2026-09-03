@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../logo.svg";
+import { createAuditLog } from "../utils/audit";
 import "./Register.css";
 
 function Register() {
@@ -43,6 +44,13 @@ function Register() {
         setError(data.error);
         return;
       }
+
+      await createAuditLog({
+        action: "CREATE",
+        entityType: "User",
+        entityId: data.userid,
+        newValues: { email, phone, address, usertype: "User" },
+      });
 
       // Account created.
       // Send user to login.

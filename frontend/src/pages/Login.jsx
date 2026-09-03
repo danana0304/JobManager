@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../logo.svg";
+import { createAuditLog } from "../utils/audit";
 import "./Login.css";
 
 function Login() {
@@ -48,6 +49,13 @@ function Login() {
           usertype: userType,
         }),
       );
+      await createAuditLog({
+        action: "LOGIN",
+        entityType: "User",
+        actorUserId: data.userid,
+        entityId: data.userid,
+        newValues: { email: data.email, usertype: userType },
+      });
 
       if (userType === "Admin") {
         navigate("/admin");

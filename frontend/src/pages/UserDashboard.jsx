@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { createAuditLog } from "../utils/audit";
 import "./UserDashboard.css";
 
 function UserDashboard() {
@@ -58,7 +59,13 @@ function UserDashboard() {
     }
   }, [loadData, userId]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await createAuditLog({
+      action: "LOGOUT",
+      entityType: "User",
+      actorUserId: userId,
+      entityId: userId,
+    });
     localStorage.removeItem("jobmanager_user");
     navigate("/login", { replace: true });
   };
@@ -108,6 +115,17 @@ function UserDashboard() {
           status: data.status,
         },
       ]);
+      await createAuditLog({
+        action: "CREATE",
+        entityType: "Application",
+        actorUserId: userId,
+        entityId: data.postingid,
+        newValues: {
+          postingid: data.postingid,
+          userid: data.userid,
+          status: data.status,
+        },
+      });
     } catch (err) {
       setAvailablePostings((postings) =>
         postings.map((posting) =>
