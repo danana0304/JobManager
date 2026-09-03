@@ -271,7 +271,31 @@ def update_user_profile(userid):
         'email': user.email,
         'phone': user.phone,
         'address': user.address,
-        'usertype': user.usertype
+        'usertype': user.usertype.value if isinstance(user.usertype, UserType) else user.usertype
+    }), 200
+
+@app.route('/users/<int:userid>/role', methods=['PUT'])
+def update_user_role(userid):
+    data = request.get_json() or {}
+    if 'usertype' not in data:
+        return jsonify({'error': 'usertype is required'}), 400
+
+    try:
+        new_usertype = UserType[data['usertype']]
+    except (KeyError, TypeError):
+        return jsonify({'error': 'Invalid usertype. Must be one of: User, Admin'}), 400
+
+    user = db.session.get(User, userid)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    user.usertype = new_usertype
+    db.session.commit()
+
+    return jsonify({
+        'message': 'User type updated successfully',
+        'userid': user.userid,
+        'usertype': user.usertype.value
     }), 200
 
 @app.route('/applications/postings/<int:postingid>/users/<int:userid>', methods=['PUT'])

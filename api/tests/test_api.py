@@ -138,6 +138,90 @@ class ApiCrudTestCase(unittest.TestCase):
             400,
         )
 
+    def test_user_profile_update(self):
+        user_id = self.register("profile@example.com").json["userid"]
+
+        response = self.client.put(
+            f"/users/{user_id}",
+            json={
+                "email": "updated-profile@example.com",
+                "phone": "555-0100",
+                "address": "100 Main Street",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json["email"], "updated-profile@example.com")
+        self.assertEqual(response.json["phone"], "555-0100")
+        self.assertEqual(response.json["address"], "100 Main Street")
+
+        self.assertEqual(
+            self.client.put(
+                f"/users/{user_id}",
+                json={"email": "updated-profile@example.com"},
+            ).status_code,
+            200,
+        )
+        self.assertEqual(self.client.put("/users/999", json={}).status_code, 404)
+
+    def test_posting_update_and_delete(self):
+        user_id = self.register("posting-crud@example.com").json["userid"]
+        posting_id = self.client.post(
+            "/postings",
+            json={
+                "company": "Original Corp",
+                "position": "Original Role",
+                "description": "Original description",
+                "postedby": user_id,
+            },
+        ).json["postingid"]
+
+        response = self.client.put(
+            f"/postings/{posting_id}",
+            json={
+                "company": "Updated Corp",
+                "position": "Updated Role",
+                "description": "Updated description",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json["position"], "Updated Role")
+        self.assertEqual(response.json["description"], "Updated description")
+
+        response = self.client.delete(f"/postings/{posting_id}")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.client.delete(f"/postings/{posting_id}").status_code, 404)
+
+    def test_application_delete(self):
+        poster_id = self.register("delete-poster@example.com").json["userid"]
+        applicant_id = self.register("delete-applicant@example.com").json["userid"]
+        posting_id = self.client.post(
+            "/postings",
+            json={"company": "Delete Corp", "position": "Role", "postedby": poster_id},
+        ).json["postingid"]
+        self.assertEqual(
+            self.client.post(
+                "/applications",
+                json={"postingid": posting_id, "userid": applicant_id},
+            ).status_code,
+            201,
+        )
+
+        response = self.client.delete(
+            f"/applications/postings/{posting_id}/users/{applicant_id}"
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            self.client.delete(
+                f"/applications/postings/{posting_id}/users/{applicant_id}"
+            ).status_code,
+            404,
+        )
+        self.assertEqual(
+            self.client.get(f"/applications/users/{applicant_id}").json,
+            [],
+        )
+
     def test_user_role_update_and_audit_log(self):
         user_id = self.register("role@example.com").json["userid"]
         response = self.client.put(
