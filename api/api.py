@@ -6,11 +6,13 @@ from flask_cors import CORS
 from flask_login import ( LoginManager, UserMixin, login_user, logout_user, login_required, current_user )
 from werkzeug.security import generate_password_hash, check_password_hash
 from enum import Enum
+from prometheus_flask_exporter import PrometheusMetrics
 
 load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'dev-secret-key')
+metrics = PrometheusMetrics(app)
 
 frontend_url = os.getenv(
     'FRONTEND_URL',
