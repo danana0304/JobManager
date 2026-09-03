@@ -329,18 +329,6 @@ class User(UserMixin, db.Model):
     def get_id(self):
         return str(self.userid)
 
-class Skill(db.Model):
-    __tablename__ = 'skills'
-
-    skillid = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-
-
-class UserSkill(db.Model):
-    __tablename__ = 'userskills'
-
-    userid = db.Column(db.Integer, db.ForeignKey('users.userid', ondelete='CASCADE'), primary_key=True)
-    skillid = db.Column(db.Integer, db.ForeignKey('skills.skillid', ondelete='CASCADE'), primary_key=True)
 
 
 class Posting(db.Model):
@@ -364,7 +352,7 @@ class Application(db.Model):
 class AuditLog(db.Model):
     __tablename__ = 'auditlog'
 
-    auditid = db.Column(db.BigInteger, primary_key=True)
+    auditid = db.Column(db.Integer, primary_key=True, autoincrement=True)
     actoruserid = db.Column(db.Integer, db.ForeignKey('users.userid', ondelete='SET NULL'), nullable=True)
     action = db.Column(db.String(50), nullable=False)
     entitytype = db.Column(db.String(50), nullable=False)
