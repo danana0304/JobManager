@@ -106,24 +106,6 @@ def logout():
         'message': 'Logged out successfully' 
         })
 
-@app.route('/skills', methods=['POST'])
-def create_skill():
-    data = request.get_json()
-    name = data.get('name')
-    if not name:
-        return jsonify({'error': 'Skill name is required'}), 400
-
-    skill = Skill(name=name)
-
-    db.session.add(skill)
-    db.session.commit()
-
-    return jsonify({
-        'skillid': skill.skillid,
-        'name': skill.name
-    }), 201
-
-
 @app.route('/applications', methods=['POST'])
 def create_application():
     data = request.get_json()
@@ -196,7 +178,6 @@ def create_audit_log():
     entity_type = data.get('entitytype')
     actor_id = data.get('actoruserid')
 
-    # Basic validation matching check constraint
     valid_actions = ['CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT']
     if not action or action not in valid_actions:
         return jsonify({
@@ -368,12 +349,10 @@ def get_current_user():
 def user_dashboard():
     return jsonify({ 'message': 'Welcome to user dashboard', 'userid': current_user.userid, 'email': current_user.email })
 
-
 @app.route('/admin')
 @admin_required
 def admin_dashboard():
     return jsonify({ 'message': 'Welcome to admin dashboard', 'userid': current_user.userid, 'email': current_user.email })
-
 
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
@@ -392,8 +371,6 @@ class User(UserMixin, db.Model):
 
     def get_id(self):
         return str(self.userid)
-
-
 
 class Posting(db.Model):
     __tablename__ = 'postings'
@@ -441,20 +418,6 @@ def get_users():
         }
         for user in users
     ])
-
-@app.route('/users/<int:userid>/skills')
-def get_user_skills(userid):
-    user = db.session.get(User, userid)
-    if not user:
-        return jsonify({'error': 'User not found'}), 404
-
-    return jsonify([
-        {
-            'skillid': skill.skillid,
-            'name': skill.name
-        }
-        for skill in user.skills
-    ]), 200
 
 @app.route('/postings')
 def get_postings():
@@ -573,7 +536,6 @@ def get_applications(userid):
         for app in applications
     ])
 
-
 @app.route('/applications')
 def get_all_applications():
     applications = (
@@ -598,18 +560,6 @@ def get_all_applications():
             'status': app.status
         }
         for app in applications
-    ])
-
-@app.route('/skills')
-def get_skills():
-    skills = Skill.query.all()
-
-    return jsonify([
-        {
-            'userid': skill.userid,
-            'name': skill.name
-        }
-        for skill in skills
     ])
 
 @app.route('/audit-logs', methods=['GET'])
