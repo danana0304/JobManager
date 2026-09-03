@@ -33,3 +33,19 @@ CREATE TABLE IF NOT EXISTS Applications (
     Status application_status NOT NULL DEFAULT 'Applied',
     PRIMARY KEY (PostingId, UserId)
 );
+
+CREATE TABLE IF NOT EXISTS AuditLog (
+    AuditId BIGSERIAL PRIMARY KEY,
+    ActorUserId INT REFERENCES Users(UserId) ON DELETE SET NULL,
+    Action VARCHAR(50) NOT NULL,
+    EntityType VARCHAR(50) NOT NULL,
+    EntityId BIGINT,
+    OldValues JSONB,
+    NewValues JSONB,
+    IpAddress INET,
+    UserAgent TEXT,
+    CreatedAt TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT audit_log_action_check CHECK (
+        Action IN ('CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT')
+    )
+);
