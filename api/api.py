@@ -232,32 +232,46 @@ def create_audit_log():
         'actoruserid': log_entry.actoruserid
     }), 201
 
-@app.route('/users/<int:userid>/role', methods=['PUT'])
-def update_user_role(userid):
-    data = request.get_json()
-    if not data or 'usertype' not in data:
-        return jsonify({'error': 'usertype is required'}), 400
-
-    new_usertype_str = data.get('usertype')
-
-    try:
-        new_usertype = UserType[new_usertype_str]
-    except KeyError:
-        return jsonify({
-            'error': f'Invalid usertype. Must be one of: User, Admin'
-        }), 400
-
+@app.route('/users/<int:userid>', methods=['PUT'])
+def update_user_profile(userid):
     user = db.session.get(User, userid)
     if not user:
         return jsonify({'error': 'User not found'}), 404
 
-    user.usertype = new_usertype
+    data = request.get_json() or {}
+
+    if 'email' in data:
+        existing_user = User.query.filter(User.email == data['email'], User.userid != userid).first()
+        if existing_user:
+            return jsonify({'error': 'Email already in use by another user'}), 409
+        user.email = data['email']
+
+    if 'phone' in data:
+        user.phone = data['phone']
+
+    if 'address' in data:
+        user.address = data['address']
+
+    if 'password' in data and data['password']:
+        user.password = generate_password_hash(data['password'])
+
+    if 'usertype' in data:
+        try:
+            user.usertype = UserType[data['usertype']]
+        except KeyError:
+            return jsonify({
+                'error': 'Invalid usertype. Must be one of: User, Admin'
+            }), 400
+
     db.session.commit()
 
     return jsonify({
-        'message': 'User type updated successfully',
+        'message': 'User profile updated successfully',
         'userid': user.userid,
-        'usertype': user.usertype.value if isinstance(user.usertype, UserType) else user.usertype
+        'email': user.email,
+        'phone': user.phone,
+        'address': user.address,
+        'usertype': user.usertype
     }), 200
 
 @app.route('/applications/postings/<int:postingid>/users/<int:userid>', methods=['PUT'])
@@ -291,6 +305,32 @@ def update_application_status(postingid, userid):
         'postingid': application.postingid,
         'userid': application.userid,
         'status': application.status
+    }), 200
+
+@app.route('/postings/<int:postingid>', methods=['PUT'])
+def update_posting(postingid):
+    posting = db.session.get(Posting, postingid)
+    if not posting:
+        return jsonify({'error': 'Posting not found'}), 404
+
+    data = request.get_json() or {}
+
+    if 'company' in data:
+        posting.company = data['company']
+    if 'position' in data:
+        posting.position = data['position']
+    if 'description' in data:
+        posting.description = data['description']
+
+    db.session.commit()
+
+    return jsonify({
+        'message': 'Posting updated successfully',
+        'postingid': posting.postingid,
+        'company': posting.company,
+        'position': posting.position,
+        'description': posting.description,
+        'postedby': posting.postedby
     }), 200
 
 @app.route('/me')
@@ -567,6 +607,32 @@ def get_audit_logs():
         }
         for log in logs
     ]), 200
+
+@app.route('/applications/postings/<int:postingid>/users/<int:userid>', methods=['DELETE'])
+def delete_application(postingid, userid):
+    application = Application.query.filter_by(
+        postingid=postingid,
+        userid=userid
+    ).first()
+
+    if not application:
+        return jsonify({'error': 'Application not found'}), 404
+
+    db.session.delete(application)
+    db.session.commit()
+
+    return jsonify({'message': 'Application deleted successfully'}), 200
+
+@app.route('/postings/<int:postingid>', methods=['DELETE'])
+def delete_posting(postingid):
+    posting = db.session.get(Posting, postingid)
+    if not posting:
+        return jsonify({'error': 'Posting not found'}), 404
+
+    db.session.delete(posting)
+    db.session.commit()
+
+    return jsonify({'message': 'Posting deleted successfully'}), 200
 
 @app.route('/tables')
 def get_tables():
