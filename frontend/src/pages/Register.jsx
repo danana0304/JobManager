@@ -5,6 +5,7 @@ import { createAuditLog } from "../utils/audit";
 import "./Register.css";
 
 function Register() {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
@@ -69,6 +70,14 @@ function Register() {
         </div>
 
         <form onSubmit={handleRegister} className="register-form">
+          <input
+            type="text"
+            placeholder="Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="register-input"
+          />
+
           <input
             type="email"
             placeholder="Email"
